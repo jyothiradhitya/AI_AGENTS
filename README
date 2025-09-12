@@ -1,0 +1,68 @@
+# AI SQL & Visualization Chatbot
+
+## Overview
+The **AI SQL & Visualization Chatbot** is a document-aware AI system that can read uploaded documents (PDF, DOCX, PPTX, CSV, TXT) and answer user queries using **large language models (LLMs)** and SQL-based insights. The system is designed using a **modular, agent-based architecture** for flexibility and scalability.
+
+The project includes:
+
+- **IngestionAgent** – Extracts text from uploaded documents.
+- **RetrievalAgent** – Retrieves relevant context based on the user's query.
+- **LLMResponseAgent** – Generates responses using the context and query.
+- **CoordinatorAgent** – Orchestrates communication between agents.
+- **Streamlit UI** – Provides a user-friendly interface for file upload and querying.
+
+---
+
+## Features
+
+- Supports multiple document formats: PDF, DOCX, PPTX, CSV, TXT
+- Handles natural language queries
+- Modular agent-based architecture for asynchronous processing
+- Integration with Google Gemini LLM for contextual responses
+- Streamlit interface for real-time querying and answer visualization
+- Preview feature to check document contents before LLM processing
+
+---
+
+## System Architecture & Flow
+
+1. **User Input**: Upload documents and enter a natural language query via Streamlit UI.
+2. **Ingestion**: `IngestionAgent` reads uploaded files, extracts text, and returns it to the coordinator.
+3. **Retrieval**: `RetrievalAgent` takes the query and ingested text, then selects relevant context.
+4. **LLM Response**: `LLMResponseAgent` receives the query and context, then generates a human-readable answer.
+5. **Coordinator**: `CoordinatorAgent` orchestrates all steps and returns the final answer to the UI.
+
+**Architecture Diagram**:  
+![Architecture Diagram](path/to/your_architecture_diagram.png)  
+*(Replace with your PDF or PPTX diagram)*
+
+---
+Challenges & Improvements
+
+Challenges Faced:
+
+Handling multiple document types consistently.
+
+Coordinating asynchronous agent communication.
+
+Dealing with LLM API rate limits and overloaded models.
+
+Properly passing ingested document text to LLM to ensure accurate answers.
+
+Suggested Improvements:
+
+Implement API key rotation or queueing to handle high LLM traffic.
+
+Extend retrieval to rank and summarize multiple documents.
+
+Add caching for repeated queries to improve response times.
+
+Enhance UI to allow selection of document sections for focused queries.
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/jyothiradhitya/AI_AGENTS.git
+cd AI_AGENTS
