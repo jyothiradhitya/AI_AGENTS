@@ -32,9 +32,6 @@ The project includes:
 4. **LLM Response**: `LLMResponseAgent` receives the query and context, then generates a human-readable answer.
 5. **Coordinator**: `CoordinatorAgent` orchestrates all steps and returns the final answer to the UI.
 
-**Architecture Diagram**:  
-![Architecture Diagram](path/to/your_architecture_diagram.png)  
-*(Replace with your PDF or PPTX diagram)*
 
 ---
 Challenges & Improvements
