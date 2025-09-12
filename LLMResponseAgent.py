@@ -8,7 +8,7 @@ class LLMResponseAgent:
     def __init__(self, out_queue):
         self.out_queue = out_queue
         self.name = "LLMResponseAgent"
-        GEMINI_API_KEY = "AIzaSyD_Jg7JUrSDtWPaNiyTnuy0E7ehN8r8S6M"
+        GEMINI_API_KEY = "ADD_YOUR_API_KEY"
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def log(self, text: str):
@@ -56,3 +56,4 @@ class LLMResponseAgent:
         )
         await self.out_queue.put(out_msg)
         self.log("Sent final LLM_RESPONSE → CoordinatorAgent")
+
