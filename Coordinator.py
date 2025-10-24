@@ -26,13 +26,13 @@ class CoordinatorAgent:
         self.logs.append(msg)
 
     async def run(self):
-        self.log("run: Coordinator loop started")
+        self.log("Coordinator loop started")
         while True:
             msg = await self.in_queue.get()
             await self.handle(msg)
 
     async def start_flow(self, file_paths, query):
-        self.log("start_flow: Flow started")
+        self.log("Flow started")
         trace = new_trace_id()
 
         # Print query for debugging
@@ -53,27 +53,35 @@ class CoordinatorAgent:
         self.state["query"] = query
 
     async def handle(self, msg: MCPMessage):
-        self.log(f"handle: {msg.type} from {msg.sender}")
+        self.log(f"Received {msg.type} from {msg.sender}")
 
         if msg.type == "INGESTION_ACK":
             docs = msg.payload.get("files", [])
             self.state["docs"] = docs
-            self.log(f"handle: Got {len(docs)} docs from ingestion")
+            self.log(f"Received {len(docs)} docs from ingestion")
 
-            # Print first document text length for debugging
-            if docs:
-                first_doc_text = docs[0].get("text", "")
-                print(f"[DEBUG] First doc length: {len(first_doc_text)}")
-                print(f"[DEBUG] First 200 chars:\n{first_doc_text[:200]}")
+            # Flatten all chunks for retrieval
+            all_chunks = []
+            for doc in docs:
+                chunks = doc.get("chunks", [])
+                all_chunks.extend(chunks)
+            self.state["chunks"] = all_chunks
 
-            # Send to retrieval with query
+            # Debug: show first chunk
+            if all_chunks:
+                print(f"[DEBUG] First chunk (200 chars):\n{all_chunks[0][:200]}")
+
+            # Send query + chunks to retrieval agent
             retrieval_msg = MCPMessage(
                 trace_id=msg.trace_id,
                 type="RETRIEVE",
                 sender=self.name,
                 receiver="RetrievalAgent",
                 timestamp=datetime.utcnow(),
-                payload={"docs": docs, "query": self.state["query"]}
+                payload={
+                    "chunks": all_chunks,
+                    "query": self.state["query"]
+                }
             )
             await self.retrieval.handle(retrieval_msg)
 
@@ -86,11 +94,10 @@ class CoordinatorAgent:
         elif msg.type == "CONTEXT_RESPONSE":
             passages = msg.payload.get("context") or ""
             self.state["retrieved"] = passages
-            self.log("handle: Got retrieval context")
+            self.log(f"Retrieved context length: {len(passages)} chars")
 
-            # Print context and query before sending to LLM
-            print(f"[DEBUG] Sending to LLM, context length: {len(passages)}")
-            print(f"[DEBUG] Context first 200 chars:\n{passages[:200]}")
+            # Debug: show context and query
+            print(f"[DEBUG] Sending to LLM, context first 200 chars:\n{passages[:200]}")
             print(f"[DEBUG] Query: {self.state.get('query')}")
 
             # Send both query and context to LLM
@@ -110,8 +117,8 @@ class CoordinatorAgent:
         elif msg.type == "LLM_RESPONSE":
             answer = msg.payload.get("answer", "(No answer received)")
             self.state["answer"] = answer
-            self.log("handle: Got final LLM answer")
+            self.log("Received final LLM answer")
             print(f"\n>>> FINAL ANSWER: {answer}\n")
 
         else:
-            self.log(f"handle: Unknown message type {msg.type}")
+            self.log(f"Unknown message type {msg.type}")
