@@ -7,52 +7,76 @@ from datetime import datetime
 
 nest_asyncio.apply()  # allows asyncio inside Streamlit
 
+# -------------------------------
 # Initialize Coordinator
+# -------------------------------
 if "coordinator" not in st.session_state:
     st.session_state.coordinator = CoordinatorAgent()
     st.session_state.answer = ""
     st.session_state.flow_running = False
+    st.session_state.coordinator_task = None
 
 coordinator = st.session_state.coordinator
 
-st.title("AI SQL & Visualization Chatbot")
+# -------------------------------
+# UI Elements
+# -------------------------------
+st.title("AI SQL & Document Chatbot")
 
-uploaded_file = st.file_uploader(
+uploaded_files = st.file_uploader(
     "Upload PDF / DOCX / PPTX / CSV / TXT",
-    type=["pdf", "docx", "pptx", "csv", "txt"]
+    type=["pdf", "docx", "pptx", "csv", "txt"],
+    accept_multiple_files=True
 )
+
 query = st.text_input("Enter your query", value="What is in the document?")
 run_flow_btn = st.button("Run Flow")
 
+preview_container = st.empty()
 answer_container = st.empty()
 
-# Async helper
-async def run_flow(file, query_text):
+# -------------------------------
+# Async Flow Runner
+# -------------------------------
+async def run_flow(files, query_text):
     st.session_state.flow_running = True
 
     # Start coordinator loop if not running
-    if "coordinator_task" not in st.session_state:
+    if st.session_state.coordinator_task is None:
         st.session_state.coordinator_task = asyncio.create_task(coordinator.run())
 
     # Start the flow
-    await coordinator.start_flow([file], query_text)
+    await coordinator.start_flow(files, query_text)
 
-    # Wait until LLM_RESPONSE is received
-    while "answer" not in coordinator.state or not coordinator.state["answer"]:
+    # Poll for preview and answer
+    preview_shown = False
+    while True:
+        # Preview
+        preview = coordinator.state.get("preview")
+        if preview and not preview_shown:
+            preview_container.subheader("Preview (first chunk):")
+            preview_container.write(preview[:500] + "..." if len(preview) > 500 else preview)
+            preview_shown = True
+
+        # Final answer
+        answer = coordinator.state.get("answer")
+        if answer:
+            answer_container.subheader("LLM Answer:")
+            answer_container.write(answer)
+            break
+
         await asyncio.sleep(0.5)
-
-    # Display only the final answer
-    st.session_state.answer = coordinator.state["answer"]
-    answer_container.subheader("LLM Answer:")
-    answer_container.write(st.session_state.answer)
 
     st.session_state.flow_running = False
 
-# Run flow on button click
+# -------------------------------
+# Run Flow Button
+# -------------------------------
 if run_flow_btn and not st.session_state.flow_running:
-    if uploaded_file is None:
-        st.warning("Please upload a file first!")
+    if not uploaded_files:
+        st.warning("Please upload at least one file!")
     elif not query:
         st.warning("Please enter a query!")
     else:
-        asyncio.run(run_flow(uploaded_file, query))
+        # Run async RAG flow
+        asyncio.run(run_flow(uploaded_files, query))
