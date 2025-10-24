@@ -5,6 +5,7 @@ import pdfplumber
 from pptx import Presentation
 import docx
 import pandas as pd
+from parser import chunk_texts  # import your chunking function
 
 class IngestionAgentSync:
     def __init__(self, out_queue=None):
@@ -55,7 +56,7 @@ class IngestionAgentSync:
         return text
 
     # ---- sync handler ----
-    def handle_sync(self, files):
+    def handle_sync(self, files, chunk_size=500):
         docs = []
         for f in files:
             name = getattr(f, "name", "unknown")
@@ -76,7 +77,11 @@ class IngestionAgentSync:
                     text = raw.decode("utf-8", errors="ignore")
                 except Exception:
                     text = f"[Unsupported type {name}]"
-            docs.append({"filename": name, "text": text})
+
+            # ---- CHUNKING ----
+            chunks = chunk_texts(text, chunk_size=chunk_size)
+            docs.append({"filename": name, "chunks": chunks})
+
         return docs
 
     # ---- async handler ----
@@ -93,3 +98,4 @@ class IngestionAgentSync:
                 payload={"files": docs}
             )
             await self.out_queue.put(ack)
+            self.log(f"Sent INGESTION_ACK with {len(docs)} chunked docs")
