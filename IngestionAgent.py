@@ -5,7 +5,7 @@ import pdfplumber
 from pptx import Presentation
 import docx
 import pandas as pd
-from parser import chunk_texts  # import your chunking function
+from parsers import chunk_texts  # import your chunking function
 
 class IngestionAgentSync:
     def __init__(self, out_queue=None):

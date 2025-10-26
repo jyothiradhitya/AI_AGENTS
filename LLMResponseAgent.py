@@ -3,12 +3,15 @@ from datetime import datetime
 import streamlit as st
 import asyncio
 from mcp_models import MCPMessage
+from dotenv import load_dotenv
+import os
 
 class LLMResponseAgent:
     def __init__(self, out_queue):
         self.out_queue = out_queue
         self.name = "LLMResponseAgent"
-        GEMINI_API_KEY = "ADD_YOUR_API_KEY"
+        load_dotenv()
+        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def log(self, text: str):
@@ -38,8 +41,8 @@ class LLMResponseAgent:
             response = await loop.run_in_executor(
                 None,
                 lambda: self.client.models.generate_content(
-                    model="gemini-1.5-flash",
-                    contents=f"Answer the question: {query} based on the following text:\n\n{context_short}"
+                    model="gemini-2.5-flash",
+                    contents=f"Given the context below, provide a relevant and concise reply to the query.\n\nContext:\n{context_short}\n\nQuery:\n{query}"
                 )
             )
             final_text = getattr(response, "text", "(No response text)")

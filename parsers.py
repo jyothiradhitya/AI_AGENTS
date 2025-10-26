@@ -40,7 +40,7 @@ def parse_txt(path: str):
     txt = Path(path).read_text(encoding="utf-8")
     return [{"text": txt}]
 
-def chunk_texts(text, chunk_size=500):
+def chunk_texts(text, chunk_size=5):
     chunks = []
     start = 0
     while start < len(text):
