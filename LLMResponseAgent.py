@@ -42,8 +42,16 @@ class LLMResponseAgent:
                 None,
                 lambda: self.client.models.generate_content(
                     model="gemini-2.5-flash",
-                    contents=f"Given the context below, provide a relevant and concise reply to the query.\n\nContext:\n{context_short}\n\nQuery:\n{query}"
-                )
+                    contents = f"""You are an expert AI assistant. Using the context provided below, explain the answer to the query clearly and in detail. 
+If the context contains specific data or examples, include them in your explanation.
+
+Context:
+{context_short}
+
+Query:
+{query}
+"""
+ )
             )
             final_text = getattr(response, "text", "(No response text)")
         except Exception as e:

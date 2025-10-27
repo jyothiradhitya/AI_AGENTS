@@ -54,8 +54,8 @@ async def run_flow(files, query_text):
         # Preview
         preview = coordinator.state.get("preview")
         if preview and not preview_shown:
-            preview_container.subheader("Preview (first chunk):")
-            preview_container.write(preview[:500] + "..." if len(preview) > 500 else preview)
+            #preview_container.subheader("Preview (first chunk):")
+            #preview_container.write(preview[:500] + "..." if len(preview) > 500 else preview)
             preview_shown = True
 
         # Final answer
